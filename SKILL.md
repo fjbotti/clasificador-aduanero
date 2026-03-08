@@ -248,6 +248,43 @@ Documenta explícitamente cómo aplicaste cada RGI relevante:
 - **RGI 5**: Envases clasificados con el producto
 - **RGI 6**: Aplica RGI 1-5 a nivel subpartidas
 
+### PASO 3b: Validación Cruzada de Posiciones Vecinas
+
+**OBLIGATORIO** antes de confirmar la clasificación. Este paso previene el error más común: elegir una subpartida sin verificar que las hermanas no sean más apropiadas.
+
+#### Procedimiento:
+
+1. **Identificar la partida candidata** (ej: 84.71)
+2. **Buscar TODAS las subpartidas de esa partida**:
+   ```
+   search_posiciones("8471")  # Devuelve 8471.30, 8471.41, 8471.49, 8471.50, etc.
+   ```
+3. **Comparar cada subpartida hermana** con el producto:
+   - ¿Alguna otra subpartida describe MEJOR el producto?
+   - ¿La subpartida elegida es la MÁS ESPECÍFICA? (RGI 3a a nivel subpartida)
+   - ¿Hay subpartidas residuales ("Los demás") que podrían aplicar?
+
+4. **Si hay duda entre subpartidas**, aplicar RGI 6:
+   - Solo comparar subpartidas del mismo nivel (un guión con un guión)
+   - Aplicar RGI 1-5 mutatis mutandis a nivel subpartidas
+
+5. **Documentar la comparación**:
+   ```
+   VALIDACIÓN DE POSICIONES VECINAS (partida 84.71):
+   - 8471.30 (Máquinas portátiles < 10kg) → candidata principal ✓
+   - 8471.41 (Las demás, con unidad de proceso + E/S) → descartada: el producto es portátil < 10kg
+   - 8471.49 (Las demás, presentadas en forma de sistema) → descartada: no es un sistema
+   - 8471.50 (Unidades de proceso, excl. 8471.41/49) → descartada: es una máquina completa, no solo CPU
+   CONCLUSIÓN: 8471.30 es la más específica (RGI 3a + RGI 6)
+   ```
+
+6. **Verificar también a nivel de partida** si hay ambigüedad:
+   - ¿Podría clasificarse en una partida cercana? (ej: 84.71 vs 84.73 vs 85.17)
+   - Buscar las partidas vecinas: `search_posiciones("8473")`, `search_posiciones("8517")`
+   - Las notas de capítulo ya consultadas en Paso 2b deberían resolver esto
+
+**POR QUÉ ES CRÍTICO**: Muchos errores de clasificación no son de capítulo sino de subpartida. Un producto puede estar correctamente en el capítulo 84 pero en la subpartida equivocada, lo que cambia aranceles, intervenciones y requisitos.
+
 ### PASO 4: Documentar Exclusiones
 
 Lista al menos 2-3 posiciones que **DESCARTASTE** y por qué:
@@ -260,15 +297,20 @@ Lista al menos 2-3 posiciones que **DESCARTASTE** y por qué:
 
 ### PASO 5: Evaluación de Confianza (0-100%)
 
-- ✅ Coincidencia literal con descripción oficial: +25%
+- ✅ Coincidencia literal con descripción oficial: +20%
 - ✅ Notas de sección consultadas y sin conflicto: +10%
 - ✅ Notas de capítulo consultadas y confirman clasificación: +15%
 - ✅ Notas explicativas de partida revisadas: +10%
-- ✅ Sin ambigüedad en RGI aplicadas: +15%
+- ✅ Sin ambigüedad en RGI aplicadas: +10%
+- ✅ Posiciones vecinas validadas (Paso 3b): +10%
+- ✅ Posición confirmada vigente en API: +5%
 - ✅ Información técnica completa disponible: +10%
 - ✅ Exclusiones claras descartadas con citas: +10%
 - ⚠️ Notas NO consultadas: **-30%** (penalización obligatoria)
+- ⚠️ Posiciones vecinas NO verificadas: **-20%**
 - ⚠️ Capítulos alternativos no verificados: **-15%**
+
+**Verificación de vigencia**: Al hacer `search_posiciones()` con el código exacto de la posición candidata, la API confirma que la posición existe y está vigente en la nomenclatura actual. Si la búsqueda no devuelve la posición, puede haber sido modificada o eliminada — buscar la posición actualizada.
 
 ### PROCESO ITERATIVO (si confianza < 70%)
 
