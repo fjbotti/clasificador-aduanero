@@ -561,12 +561,16 @@ python3 bin/generar-dictamen.py datos.json /tmp/dictamen.pdf
 **Pasos para generar el PDF:**
 1. Recopilar todos los datos de la clasificacion realizada en la sesion actual
 2. Armar el JSON con la estructura requerida (ver arriba)
-3. Escribir el JSON a un archivo temporal: `/tmp/dictamen-input-XXXXX.json`
-4. Ejecutar: `python3 bin/generar-dictamen.py /tmp/dictamen-input-XXXXX.json /tmp/dictamen-CLF-XXXXX.pdf`
-5. Enviar el PDF al usuario como archivo adjunto con un mensaje descriptivo
-6. Eliminar el JSON temporal
+3. Escribir el JSON a un archivo en el workspace: `output/dictamen-input.json`
+4. Ejecutar: `python3 bin/generar-dictamen.py output/dictamen-input.json output/dictamen.pdf`
+5. Enviar el PDF usando la ruta del workspace (NO /tmp): `output/dictamen.pdf`
+6. Eliminar los archivos temporales de output/
 
-**IMPORTANTE**: Despues de enviar el PDF, responder con un mensaje util al usuario (ej: "Aca tenes el dictamen en PDF con toda la fundamentacion. Si necesitas ajustar algo, decime."). NUNCA responder con "NO_REPLY" ni dejar el mensaje vacio despues de enviar el archivo.
+**RUTA DEL PDF**: Siempre guardar en el directorio `output/` dentro del workspace (crear con `mkdir -p output` si no existe). NUNCA guardar en `/tmp/` porque no se puede enviar desde ahi.
+
+**IMPORTANTE**: Despues de enviar el PDF, responder con un mensaje util al usuario (ej: "Aca tenes el informe en PDF. Si necesitas ajustar algo, decime."). NUNCA responder con "NO_REPLY" ni dejar el mensaje vacio despues de enviar el archivo.
+
+**PROHIBIDO**: NO generar HTML y convertir con chromium/puppeteer. NO usar weasyprint ni otras herramientas. SOLO usar `bin/generar-dictamen.py`.
 
 ---
 
