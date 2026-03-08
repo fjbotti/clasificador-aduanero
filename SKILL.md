@@ -121,11 +121,55 @@ Ejemplo:
 
 ## PROCEDIMIENTO DE CLASIFICACIÓN
 
+### PASO 0: Recepción y Análisis Inicial del Producto
+
+#### a) Formatos de entrada soportados
+
+El usuario puede enviar la consulta de clasificación en distintos formatos:
+
+- **Texto**: Descripción del producto en lenguaje natural
+- **Imagen/Foto**: Foto del producto, etiqueta, packaging, o ficha técnica
+- **PDF/Documento**: Ficha técnica, catálogo, invoice, packing list
+- **Combinación**: Texto + imagen + documento
+
+**Si el usuario envía una imagen:**
+1. Analizar visualmente: material aparente, forma, componentes visibles, marcas, etiquetas
+2. Identificar texto en la imagen (OCR): modelo, especificaciones, composición
+3. Inferir uso probable y categoría general
+4. Si la imagen no es suficiente para clasificar, solicitar información adicional
+
+**Si el usuario envía un PDF/documento:**
+1. Extraer información técnica relevante: materiales, dimensiones, peso, uso
+2. Buscar códigos HS/NCM que el proveedor pueda haber sugerido (verificar, NO confiar ciegamente)
+3. Identificar país de origen si aparece en el documento
+
+#### b) Origen de la Mercancía
+
+**PREGUNTAR SIEMPRE** el país de origen si el usuario no lo proporcionó. El origen es crítico porque determina:
+- **Arancel aplicable**: Extrazona (AEC/DIE) vs. Intrazona (Mercosur 0%) vs. Preferencial (acuerdos)
+- **Derechos antidumping**: Solo aplican a orígenes específicos
+- **Licencias**: Algunas LNA son origen-dependientes
+- **Certificados de origen**: Necesarios para acceder a preferencias
+
+```
+Si el usuario no indica origen, preguntar:
+"¿De qué país se importaría este producto? El origen determina el arancel aplicable
+(ej: Mercosur = 0%, China puede tener antidumping, UE puede tener preferencia)."
+```
+
+**Orígenes comunes y sus implicancias:**
+- **Mercosur** (Brasil, Paraguay, Uruguay): AEC 0% con certificado de origen
+- **Chile, Colombia, Perú, Ecuador**: ACE con preferencias parciales → usar `search_acuerdos()`
+- **China**: Verificar antidumping → usar `search_leyes("antidumping [producto]")`
+- **UE**: Acuerdo Mercosur-UE (verificar estado de vigencia)
+- **USA**: Sin acuerdo preferencial, AEC pleno
+
 ### PASO 1: Análisis Técnico del Producto
 
 1. **Sintetiza** en 2-3 líneas qué es el producto, de qué está hecho y para qué sirve
 2. **Identifica** las palabras clave principales para búsqueda
 3. **Determina** si necesitas información adicional crítica
+4. **Registra el origen** declarado por el usuario (o marcar como pendiente)
 
 ### PASO 2: Búsqueda Estratégica en Base de Datos Tarifar
 
@@ -197,6 +241,23 @@ search_notas("nota explicativa subpartida 4202.92")
 
 No todas las subpartidas tienen notas — si no hay resultados, es normal.
 
+##### Paso b.6: Buscar Notas Complementarias del Mercosur (NCM 8 dígitos)
+
+Las Notas Complementarias (NC) son específicas del Mercosur y NO existen en el Sistema Armonizado internacional. Afectan la clasificación a nivel de 8 dígitos (los últimos 2 dígitos de la NCM).
+
+```
+search_notas("nota complementaria capítulo YY")
+search_notas("NC capítulo YY")
+search_notas("complementaria YY")
+```
+
+**Qué buscar:**
+- Definiciones específicas del Mercosur para desdoblamientos a 8 dígitos
+- Criterios de diferenciación entre subítems NCM (ej: por capacidad, peso, potencia)
+- Estas notas pueden crear distinciones que no existen a nivel HS de 6 dígitos
+
+**IMPORTANTE**: Si la posición candidata tiene 8 dígitos y los últimos 2 difieren entre opciones, las NC son las que definen cuál aplicar.
+
 ##### Resumen de análisis de notas
 
 Después de las búsquedas, documentar un mini-resumen:
@@ -212,6 +273,34 @@ Después de las búsquedas, documentar un mini-resumen:
 ```
 
 **CRÍTICO**: Las notas legales de sección y capítulo tienen **fuerza legal** (RGI 1) y prevalecen sobre la interpretación del texto de partida. Una nota de exclusión puede invalidar completamente una clasificación que parecía correcta por el texto. Si se detecta una exclusión, DETENERSE y reclasificar antes de continuar.
+
+##### Seguimiento de Cadenas de Exclusión
+
+Cuando una nota excluye un producto y lo remite a otra partida/capítulo, **SEGUIR LA CADENA COMPLETA**:
+
+```
+EJEMPLO DE CADENA:
+1. Producto parece ir en Cap. 42 (artículos de cuero)
+2. Nota 1 del Cap. 42 excluye: "calzado → Cap. 64"
+3. IR al Cap. 64 y buscar notas: search_notas("Capítulo 64")
+4. Verificar que el Cap. 64 efectivamente INCLUYE el producto
+5. Si el Cap. 64 también lo excluye → seguir al capítulo indicado
+6. Repetir hasta encontrar el capítulo que lo INCLUYE sin exclusión
+```
+
+**Procedimiento:**
+1. Detectar exclusión en nota: "se excluyen los artículos de la partida XX.YY" o "estos productos se clasifican en el Capítulo ZZ"
+2. Buscar notas del capítulo/partida destino: `search_notas("Capítulo ZZ")`
+3. Verificar que el destino incluye el producto
+4. Si hay nueva exclusión, repetir (máximo 3 saltos — si se superan, hay un problema de interpretación)
+5. Documentar la cadena completa:
+
+```
+CADENA DE EXCLUSIÓN:
+Cap. 42, Nota 1.e) → excluye a Cap. 64
+Cap. 64, Nota 1.a) → confirma inclusión de "calzado con suela y parte superior de cuero"
+DESTINO FINAL: Capítulo 64 ✓
+```
 
 #### c) Consulta de Resoluciones de Clasificación (precedentes)
 
@@ -297,18 +386,22 @@ Lista al menos 2-3 posiciones que **DESCARTASTE** y por qué:
 
 ### PASO 5: Evaluación de Confianza (0-100%)
 
-- ✅ Coincidencia literal con descripción oficial: +20%
-- ✅ Notas de sección consultadas y sin conflicto: +10%
-- ✅ Notas de capítulo consultadas y confirman clasificación: +15%
-- ✅ Notas explicativas de partida revisadas: +10%
+- ✅ Coincidencia literal con descripción oficial: +15%
+- ✅ Notas de sección consultadas y sin conflicto: +8%
+- ✅ Notas de capítulo consultadas y confirman clasificación: +12%
+- ✅ Notas explicativas de partida revisadas: +8%
+- ✅ Notas complementarias Mercosur revisadas (si aplica a 8 dígitos): +5%
+- ✅ Cadenas de exclusión seguidas completamente: +5%
 - ✅ Sin ambigüedad en RGI aplicadas: +10%
 - ✅ Posiciones vecinas validadas (Paso 3b): +10%
 - ✅ Posición confirmada vigente en API: +5%
-- ✅ Información técnica completa disponible: +10%
+- ✅ Origen conocido y aranceles ajustados: +7%
+- ✅ Información técnica completa (texto/imagen/doc): +5%
 - ✅ Exclusiones claras descartadas con citas: +10%
 - ⚠️ Notas NO consultadas: **-30%** (penalización obligatoria)
 - ⚠️ Posiciones vecinas NO verificadas: **-20%**
 - ⚠️ Capítulos alternativos no verificados: **-15%**
+- ⚠️ Origen NO consultado: **-10%**
 
 **Verificación de vigencia**: Al hacer `search_posiciones()` con el código exacto de la posición candidata, la API confirma que la posición existe y está vigente en la nomenclatura actual. Si la búsqueda no devuelve la posición, puede haber sido modificada o eliminada — buscar la posición actualizada.
 
@@ -374,6 +467,76 @@ Tu producto **"[nombre]"** se clasifica en **XXXX.XX.XX.XXXZ**.
 2. Considerar consulta vinculante si hay dudas
 3. Preparar documentación técnica
 
+### PASO 7: Generación del Dictamen PDF
+
+Al finalizar la clasificación (confianza ≥ 70%), **ofrecer al usuario** la generación de un dictamen formal en PDF.
+
+**Contenido del dictamen PDF:**
+
+```
+═══════════════════════════════════════════════
+DICTAMEN DE CLASIFICACIÓN ARANCELARIA
+Ref: [ID-TRÁMITE] | Fecha: [FECHA]
+═══════════════════════════════════════════════
+
+1. PRODUCTO
+   Descripción: [descripción completa]
+   Origen: [país de origen]
+   Uso/Destino: [uso declarado]
+
+2. CLASIFICACIÓN SUGERIDA
+   Posición NCM: XXXX.XX.XX
+   Posición SIM: XXXX.XX.XX.XXXZ
+   Descripción oficial: [texto de la nomenclatura]
+
+3. FUNDAMENTO LEGAL
+   3.1 Reglas Generales Interpretativas aplicadas:
+       - RGI X: [justificación]
+   3.2 Notas legales consultadas:
+       - Nota Sección XX: [resumen]
+       - Nota Capítulo YY: [resumen]
+       - Nota Explicativa partida YY.ZZ: [resumen]
+       - Nota Complementaria (si aplica): [resumen]
+   3.3 Precedentes (Resoluciones de Clasificación):
+       - Dictamen Nº [número]: [producto similar clasificado en...]
+
+4. POSICIONES DESCARTADAS
+   - XXXX.XX.XX: Descartada por [motivo + cita de nota]
+   - YYYY.YY.YY: Descartada por [motivo + cita de nota]
+
+5. INFORMACIÓN ARANCELARIA
+   - AEC/DIE: XX%
+   - Tasa Estadística: X%
+   - IVA: 21%
+   - IVA Adicional: X%
+   - Derechos Antidumping: [si aplica]
+   - Intervenciones: [ANMAT/SENASA/etc.]
+   - Licencias: [LNA/LA si aplica]
+
+6. NIVEL DE CONFIANZA: XX%
+
+7. DISCLAIMER
+   Este dictamen es una sugerencia técnica basada en la información
+   proporcionada y las fuentes consultadas. NO constituye una
+   clasificación oficial ni vinculante. Se recomienda verificación
+   con un despachante de aduanas matriculado y/o consulta vinculante
+   ante la Dirección General de Aduanas (ARCA).
+
+   Fuentes: Tarifar MCP, Nomenclatura Común del Mercosur,
+   Sistema Armonizado (OMA), Notas Explicativas del SA.
+═══════════════════════════════════════════════
+```
+
+**Implementación técnica:**
+- Generar el PDF usando Python (reportlab o similar)
+- Incluir logo de Tarifar si disponible
+- Formato profesional con márgenes, tipografía clara
+- Enviar al usuario como archivo adjunto
+
+**Cuándo generar:**
+- Siempre ofrecer al usuario: "¿Querés que te genere el dictamen en PDF?"
+- Si el usuario pidió `/dictamen` o mencionó "PDF", generar automáticamente
+
 ---
 
 ## REGLAS IMPORTANTES
@@ -415,6 +578,7 @@ Usuario solicita clasificación
 - `/creditos` - Ver saldo de créditos
 - `/comprar` - Comprar créditos
 - `/tramite <id>` - Continuar trámite específico
+- `/dictamen` - Generar dictamen PDF del último trámite completado
 
 ---
 
