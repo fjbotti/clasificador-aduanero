@@ -131,6 +131,31 @@ Por favor, hacé tu consulta sobre comercio exterior.
 Para clasificaciones arancelarias → seguir la MARCHA CLASIFICATORIA de SOUL.md (9 pasos).
 Para otros temas de comex → buscar en la base de datos y responder con fundamento.
 
+## 📄 GENERACION DE PDF (/pdf)
+
+Cuando el usuario pida un PDF o escriba `/pdf`:
+
+**USAR EXCLUSIVAMENTE el script `bin/generar-dictamen.py`:**
+```bash
+mkdir -p output
+# Escribir el JSON con los datos de la clasificacion a un archivo:
+cat > output/dictamen-input.json << 'EOF'
+{ ... JSON con los datos ... }
+EOF
+# Generar el PDF:
+python3 bin/generar-dictamen.py output/dictamen-input.json output/dictamen.pdf
+```
+
+**REGLAS ESTRICTAS:**
+- SOLO usar `bin/generar-dictamen.py` — tiene el logo de Tarifar y diseño profesional
+- GUARDAR en `output/` (no en /tmp/)
+- NO usar HTML + chromium/puppeteer — esta PROHIBIDO
+- NO usar weasyprint, fpdf directo, ni ninguna otra herramienta
+- Usar solo caracteres ASCII en el JSON (sin acentos, sin ñ, sin emojis)
+- Despues de enviar el PDF, escribir un mensaje descriptivo (NUNCA "NO_REPLY")
+
+Ver SKILL.md seccion PASO 7 para la estructura JSON completa.
+
 ---
 
 ## 📝 Memory
