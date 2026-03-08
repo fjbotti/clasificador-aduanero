@@ -141,12 +141,32 @@ class DictamenPDF(FPDF):
             self.cell(widths[i], 6, col.upper(), border=0, fill=True, align="L" if i == 0 else "C")
         self.ln()
 
-    def table_row(self, values, widths, bold=False, color=None):
+    def table_row(self, values, widths, bold=False, color=None, wrap_last=False):
         self.set_font("Helvetica", "B" if bold else "", 8)
         self.set_text_color(*(color or self.BLACK))
-        for i, val in enumerate(values):
-            self.cell(widths[i], 5, str(val), align="L" if i == 0 else "C")
-        self.ln()
+        if wrap_last and len(values) >= 2:
+            # Fixed columns + wrapping last column
+            x0 = self.get_x()
+            y0 = self.get_y()
+            for i in range(len(values) - 1):
+                self.set_xy(x0 + sum(widths[:i]), y0)
+                txt = str(values[i])[:50]
+                self.cell(widths[i], 5, txt, align="L" if i == 0 else "C")
+            last_i = len(values) - 1
+            self.set_xy(x0 + sum(widths[:last_i]), y0)
+            self.multi_cell(widths[last_i], 5, str(values[last_i]), align="L", new_x="LMARGIN", new_y="NEXT")
+            if self.get_y() <= y0 + 5:
+                self.set_y(y0 + 5)
+        else:
+            # Simple single-line row (all cells)
+            for i, val in enumerate(values):
+                txt = str(val)
+                # Truncate to fit in cell width roughly (1 char ~ 2pt at size 8)
+                max_chars = int(widths[i] / 2) if widths[i] > 0 else 80
+                if len(txt) > max_chars:
+                    txt = txt[:max_chars - 2] + ".."
+                self.cell(widths[i], 5, txt, align="L" if i == 0 else "C")
+            self.ln()
 
     def confidence_display(self, pct):
         x, y = self.MARGIN + 5, self.get_y() + 2
@@ -198,11 +218,12 @@ def generate(data, out):
 
     # Jerarquia NCM table
     if jerarquia:
-        ws = [35, 0]
-        ws[1] = pdf.w - 2 * pdf.MARGIN - ws[0]
+        col1_w = 38
+        col2_w = pdf.w - 2 * pdf.MARGIN - col1_w
+        ws = [col1_w, col2_w]
         pdf.table_header(["Nivel", "Detalle"], ws)
         for j in jerarquia:
-            pdf.table_row([j.get("nivel", ""), j.get("detalle", "")], ws)
+            pdf.table_row([j.get("nivel", ""), j.get("detalle", "")], ws, wrap_last=True)
         pdf.ln(2)
 
     # Confidence
@@ -325,18 +346,19 @@ def generate(data, out):
     if comparativo or excl:
         pdf.section(6, "Posiciones Descartadas")
         if comparativo:
-            ws_comp = [30, 50, 15, 15, 25]
+            total_w = pdf.w - 2 * pdf.MARGIN
+            ws_comp = [32, int(total_w - 32 - 15 - 15 - 28), 15, 15, 28]
             pdf.table_header(["Posicion", "Descripcion", "DIE", "IVA", "Resultado"], ws_comp)
             for c in comparativo:
                 res = c.get("resultado", "")
                 color = pdf.GREEN if "SELECCIONADA" in res.upper() else pdf.RED
                 pdf.table_row([
                     c.get("posicion", ""),
-                    c.get("descripcion", "")[:40],
+                    c.get("descripcion", ""),
                     c.get("die", ""),
                     c.get("iva", ""),
                     res
-                ], ws_comp, color=color)
+                ], ws_comp, color=color, wrap_last=True)
         elif excl:
             for e in excl:
                 pdf.set_font("Helvetica", "B", 8)
