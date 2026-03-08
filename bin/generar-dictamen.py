@@ -129,9 +129,17 @@ class DictamenPDF(FPDF):
         """Draw the title block on page 1."""
         # Blue header bar
         self.set_fill_color(*self.BLUE)
-        self.rect(0, 0, self.w, 45, style="F")
+        self.rect(0, 0, self.w, 50, style="F")
 
-        self.set_y(10)
+        # Logo
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "logo-tarifar.png")
+        if os.path.exists(logo_path):
+            # Place logo at top-left of header
+            self.image(logo_path, x=15, y=5, h=12)
+            self.set_y(20)
+        else:
+            self.set_y(8)
+
         self.set_font("Helvetica", "B", 20)
         self.set_text_color(*self.WHITE)
         self.cell(0, 10, "DICTAMEN DE CLASIFICACION", align="C", new_x="LMARGIN", new_y="NEXT")
@@ -144,7 +152,7 @@ class DictamenPDF(FPDF):
         fecha = data.get("fecha", datetime.now().strftime("%Y-%m-%d"))
         self.cell(0, 8, f"Ref: {id_tramite}  |  Fecha: {fecha}", align="C", new_x="LMARGIN", new_y="NEXT")
 
-        self.set_y(50)
+        self.set_y(55)
 
     def section_title(self, number, title):
         """Draw a section title."""
