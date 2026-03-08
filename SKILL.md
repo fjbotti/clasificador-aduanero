@@ -528,14 +528,53 @@ Ref: [ID-TRÁMITE] | Fecha: [FECHA]
 ```
 
 **Implementación técnica:**
-- Generar el PDF usando Python (reportlab o similar)
-- Incluir logo de Tarifar si disponible
-- Formato profesional con márgenes, tipografía clara
-- Enviar al usuario como archivo adjunto
+
+Usar el script `bin/generar-dictamen.py` que genera el PDF a partir de un JSON estructurado:
+
+```bash
+# Generar PDF desde JSON en stdin
+echo '{ ... }' | python3 bin/generar-dictamen.py - /tmp/dictamen-CLF-XXX.pdf
+
+# O desde archivo
+python3 bin/generar-dictamen.py datos.json /tmp/dictamen.pdf
+```
+
+**Estructura JSON requerida:**
+```json
+{
+  "id_tramite": "CLF-2026-XXXX",
+  "fecha": "2026-03-08",
+  "producto": {
+    "descripcion": "...",
+    "origen": "...",
+    "uso": "..."
+  },
+  "clasificacion": {
+    "ncm": "XXXX.XX.XX",
+    "sim": "XXXX.XX.XX.XXXZ",
+    "descripcion_oficial": "..."
+  },
+  "fundamento": {
+    "rgi": [{"regla": "RGI 1", "aplicacion": "..."}],
+    "notas_consultadas": [{"tipo": "Capitulo XX", "contenido": "..."}],
+    "precedentes": [{"dictamen": "DI-XXXX-XXXX", "descripcion": "..."}]
+  },
+  "exclusiones": [{"codigo": "XXXX.XX", "motivo": "..."}],
+  "aranceles": {
+    "die": "XX%", "tasa_estadistica": "X%", "iva": "21%",
+    "iva_adicional": "XX%", "iibb": "X%",
+    "antidumping": null, "intervenciones": [], "licencias": null
+  },
+  "confianza": 85
+}
+```
+
+**IMPORTANTE**: Usar solo caracteres ASCII/latin-1 en el JSON (no acentos, no ñ, no emojis). Reemplazar: a→a, e→e, i→i, o→o, u→u, ñ→n.
 
 **Cuándo generar:**
-- Siempre ofrecer al usuario: "¿Querés que te genere el dictamen en PDF?"
+- Siempre ofrecer al usuario al final: "Queres que te genere el dictamen en PDF?"
 - Si el usuario pidió `/dictamen` o mencionó "PDF", generar automáticamente
+- Enviar el PDF como archivo adjunto al usuario
 
 ---
 
