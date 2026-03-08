@@ -582,8 +582,10 @@ python3 bin/generar-dictamen.py datos.json /tmp/dictamen.pdf
 2. Armar el JSON con la estructura requerida (ver arriba)
 3. Escribir el JSON a un archivo temporal: `/tmp/dictamen-input-XXXXX.json`
 4. Ejecutar: `python3 bin/generar-dictamen.py /tmp/dictamen-input-XXXXX.json /tmp/dictamen-CLF-XXXXX.pdf`
-5. Enviar el PDF al usuario como archivo adjunto
+5. Enviar el PDF al usuario como archivo adjunto con un mensaje descriptivo
 6. Eliminar el JSON temporal
+
+**IMPORTANTE**: Despues de enviar el PDF, responder con un mensaje util al usuario (ej: "Aca tenes el dictamen en PDF con toda la fundamentacion. Si necesitas ajustar algo, decime."). NUNCA responder con "NO_REPLY" ni dejar el mensaje vacio despues de enviar el archivo.
 
 ---
 
