@@ -125,10 +125,22 @@ Ejemplo:
 - Ejemplos: "leather bags", "smartphones", "bolsas de cuero"
 - Revisa los primeros 10-20 resultados más relevantes
 
-#### b) Consulta de notas legales y RGI
-- Usa `search_notas()` para notas explicativas del capítulo/partida candidata
-- Busca exclusiones específicas
-- Las notas legales son CRÍTICAS para evitar clasificaciones erróneas
+#### b) Consulta OBLIGATORIA de Notas Legales y Explicativas
+
+Una vez identificada la(s) posición(es) candidata(s), **SIEMPRE** consultar notas en cascada:
+
+1. **Notas de Sección**: `search_notas("Nota Sección XX")` — donde XX es la sección que contiene el capítulo candidato
+2. **Notas de Capítulo**: `search_notas("Nota Capítulo YY")` — donde YY es el capítulo de la posición candidata
+3. **Notas Explicativas de Partida**: `search_notas("Nota Explicativa YYYY.XX")` — para la partida específica
+4. **Notas Explicativas de Subpartida** (si existen): `search_notas("Nota Explicativa Subpartida YYYY.XX.XX")`
+
+**Qué buscar en cada nota:**
+- **Inclusiones**: ¿el producto está expresamente mencionado?
+- **Exclusiones**: ¿hay notas que excluyan este tipo de mercancía?
+- **Definiciones**: ¿la nota define términos que afectan la clasificación?
+- **Alcance**: ¿la nota amplía o restringe el alcance de la partida?
+
+**CRÍTICO**: Las notas legales de sección y capítulo tienen fuerza legal y prevalecen sobre la interpretación del texto de partida. Una nota de exclusión puede invalidar completamente una clasificación que parecía correcta por el texto.
 
 #### c) Consulta de normativa relevante
 - Usa `search_leyes()` para verificar regulaciones especiales (antidumping, licencias, etc.)
@@ -141,7 +153,7 @@ Ejemplo:
 
 Documenta explícitamente cómo aplicaste cada RGI relevante:
 
-- **RGI 1**: ¿El texto coincide literalmente con el producto?
+- **RGI 1**: ¿El texto de partida + notas de sección/capítulo coinciden con el producto? (Las notas legales son parte integral de la RGI 1)
 - **RGI 2**: ¿Producto incompleto/sin terminar con características del artículo completo?
 - **RGI 3a**: Prioridad a descripción más específica
 - **RGI 3b**: Si son mezclas, clasificar por materia que confiere carácter esencial
@@ -156,7 +168,9 @@ Lista al menos 2-3 posiciones que **DESCARTASTE** y por qué:
 
 - ❌ **Código descartado**: XXXX.XX.XX
 - **Motivo**: Nota legal X excluye / RGI 3a favorece otra
-- **Referencia**: ID de posición, Nota del Capítulo YY
+- **Referencia**: ID de posición, Nota de Sección/Capítulo/Partida específica
+
+**IMPORTANTE**: Si una nota de sección o capítulo excluye expresamente el producto de un capítulo, citar el texto exacto de la nota. Ejemplo: "Excluido por Nota 1.e) del Capítulo 42: los artículos de la partida 64.01"
 
 ### PASO 5: Evaluación de Confianza (0-100%)
 
