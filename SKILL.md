@@ -127,20 +127,82 @@ Ejemplo:
 
 #### b) Consulta OBLIGATORIA de Notas Legales y Explicativas
 
-Una vez identificada la(s) posición(es) candidata(s), **SIEMPRE** consultar notas en cascada:
+Una vez identificada la(s) posición(es) candidata(s), **SIEMPRE** consultar notas en cascada descendente (de lo general a lo específico). Este paso es **no negociable** — sin notas, no hay clasificación válida.
 
-1. **Notas de Sección**: `search_notas("Nota Sección XX")` — donde XX es la sección que contiene el capítulo candidato
-2. **Notas de Capítulo**: `search_notas("Nota Capítulo YY")` — donde YY es el capítulo de la posición candidata
-3. **Notas Explicativas de Partida**: `search_notas("Nota Explicativa YYYY.XX")` — para la partida específica
-4. **Notas Explicativas de Subpartida** (si existen): `search_notas("Nota Explicativa Subpartida YYYY.XX.XX")`
+##### Paso b.1: Identificar Sección
 
-**Qué buscar en cada nota:**
-- **Inclusiones**: ¿el producto está expresamente mencionado?
-- **Exclusiones**: ¿hay notas que excluyan este tipo de mercancía?
-- **Definiciones**: ¿la nota define términos que afectan la clasificación?
-- **Alcance**: ¿la nota amplía o restringe el alcance de la partida?
+Consultar `references/secciones-capitulos.md` para determinar la sección del capítulo candidato.
+Ejemplo: Capítulo 42 → Sección VIII.
 
-**CRÍTICO**: Las notas legales de sección y capítulo tienen fuerza legal y prevalecen sobre la interpretación del texto de partida. Una nota de exclusión puede invalidar completamente una clasificación que parecía correcta por el texto.
+##### Paso b.2: Buscar Notas de Sección (queries múltiples)
+
+Las notas de sección definen el alcance general. Hacer **al menos 2 búsquedas**:
+
+```
+search_notas("Sección VIII")
+search_notas("notas sección VIII pieles cueros")
+```
+
+Si no hay resultados, probar variantes:
+```
+search_notas("sección 8")
+search_notas("nota legal sección VIII")
+```
+
+**Extraer**: exclusiones entre secciones, definiciones generales, alcance.
+
+##### Paso b.3: Buscar Notas de Capítulo (queries múltiples)
+
+Las notas de capítulo son las más determinantes. Hacer **al menos 2 búsquedas**:
+
+```
+search_notas("Capítulo 42")
+search_notas("nota capítulo 42 exclusiones")
+```
+
+Si el producto podría clasificarse en **más de un capítulo**, buscar notas de TODOS los capítulos candidatos para comparar exclusiones cruzadas.
+
+**Extraer**: 
+- Notas numeradas (Nota 1, 2, 3...) — definiciones y exclusiones
+- Notas de subpartida si las hay
+- Consideraciones generales del capítulo
+
+##### Paso b.4: Buscar Notas Explicativas de Partida
+
+Las notas explicativas (NESA) dan detalle sobre qué incluye/excluye cada partida:
+
+```
+search_notas("42.02")
+search_notas("nota explicativa 42.02")
+search_notas("explicativa partida 42.02")
+```
+
+**Extraer**: lista de productos incluidos/excluidos, criterios técnicos, ejemplos.
+
+##### Paso b.5: Buscar Notas de Subpartida (si existen)
+
+```
+search_notas("subpartida 4202.92")
+search_notas("nota explicativa subpartida 4202.92")
+```
+
+No todas las subpartidas tienen notas — si no hay resultados, es normal.
+
+##### Resumen de análisis de notas
+
+Después de las búsquedas, documentar un mini-resumen:
+
+```
+📋 NOTAS CONSULTADAS:
+- Sección VIII: [Encontrada/No encontrada] — [Resumen relevante]
+- Capítulo 42: Nota 1 excluye X, Nota 2 define Y como...
+- Partida 42.02: Incluye bolsos, maletines... Excluye artículos de 64.01
+- Subpartida 4202.92: [Sin notas específicas]
+
+⚠️ ALERTAS: [Cualquier exclusión o conflicto detectado]
+```
+
+**CRÍTICO**: Las notas legales de sección y capítulo tienen **fuerza legal** (RGI 1) y prevalecen sobre la interpretación del texto de partida. Una nota de exclusión puede invalidar completamente una clasificación que parecía correcta por el texto. Si se detecta una exclusión, DETENERSE y reclasificar antes de continuar.
 
 #### c) Consulta de normativa relevante
 - Usa `search_leyes()` para verificar regulaciones especiales (antidumping, licencias, etc.)
@@ -174,11 +236,15 @@ Lista al menos 2-3 posiciones que **DESCARTASTE** y por qué:
 
 ### PASO 5: Evaluación de Confianza (0-100%)
 
-- ✅ Coincidencia literal con descripción oficial: +40%
-- ✅ Confirmación por notas legales: +20%
-- ✅ Sin ambigüedad en RGI aplicadas: +20%
+- ✅ Coincidencia literal con descripción oficial: +25%
+- ✅ Notas de sección consultadas y sin conflicto: +10%
+- ✅ Notas de capítulo consultadas y confirman clasificación: +15%
+- ✅ Notas explicativas de partida revisadas: +10%
+- ✅ Sin ambigüedad en RGI aplicadas: +15%
 - ✅ Información técnica completa disponible: +10%
-- ✅ Exclusiones claras descartadas: +10%
+- ✅ Exclusiones claras descartadas con citas: +10%
+- ⚠️ Notas NO consultadas: **-30%** (penalización obligatoria)
+- ⚠️ Capítulos alternativos no verificados: **-15%**
 
 ### PROCESO ITERATIVO (si confianza < 70%)
 

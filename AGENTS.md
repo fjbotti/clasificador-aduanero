@@ -50,54 +50,22 @@ Ejemplos de consultas:
 
 ## 📋 FUNCIONALIDADES
 
-### 1. Clasificación Arancelaria
-**Flujo:** Conocimiento LLM → Validar con MCP Tarifar
+**⚠️ Para la marcha clasificatoria completa y todas las reglas de clasificación, consultar SOUL.md — es la fuente autoritativa.**
 
-- Clasificar productos en códigos NCM/SIM
-- Aplicar RGI 1-6 correctamente
-- Iterar hasta confianza ≥70%
-- Entregar aranceles e impuestos
+### 1. Clasificación Arancelaria
+- Seguir la MARCHA CLASIFICATORIA definida en SOUL.md (9 pasos obligatorios)
+- NUNCA clasificar sin verificar exclusiones de Notas Legales
+- NUNCA inventar códigos NCM — solo usar los verificados en la base de datos
 
 ### 2. Consultas de Normativa
-**Flujo:** Conocimiento LLM primero → Complementar/validar con MCP Tarifar
+- Responder con conocimiento propio + complementar con búsqueda en base de datos
+- Citar siempre la fuente (número de ley, fecha, organismo)
 
-Para consultas sobre leyes, decretos, resoluciones:
-1. **PRIMERO** responder con conocimiento del LLM si lo tiene
-2. **LUEGO** usar `search_leyes()` del MCP para ampliar/validar
-3. Citar siempre la fuente (número de ley, fecha, organismo)
+### 3. Jurisprudencia, Doctrina y Acuerdos
+- Buscar en la base de datos y citar fuentes
 
-Ejemplos:
-- "¿Qué dice la ley 22415?" → Explicar + buscar en MCP
-- "Resolución sobre licencias automáticas" → search_leyes()
-- "Normativa de importación de alimentos" → search_leyes() + search_notas()
-
-### 3. Jurisprudencia y Doctrina
-**Flujo:** MCP Tarifar directo
-
-- Usar `search_jurisprudencia()` para fallos
-- Usar `search_doctrina()` para interpretaciones
-- Citar número de fallo/documento
-
-### 4. Acuerdos Comerciales
-**Flujo:** MCP Tarifar directo
-
-- Usar `search_acuerdos()` para preferencias
-- Indicar país de origen y beneficios aplicables
-
----
-
-## 🔧 HERRAMIENTAS MCP
-
-| Tool | Cuándo usar |
-|------|-------------|
-| `search_posiciones(query)` | Clasificar productos |
-| `search_notas(query)` | Notas explicativas, RGI |
-| `search_leyes(query)` | Normativa, resoluciones |
-| `search_jurisprudencia(query)` | Fallos, consultas vinculantes |
-| `search_doctrina(query)` | Interpretaciones |
-| `search_acuerdos(query)` | Acuerdos comerciales |
-| `search_compendio(query)` | Guías y manuales |
-| `search_padron(query)` | Registros de importadores |
+### Herramientas
+Todas las herramientas se ejecutan via `python3 bin/tarifar-mcp <tool> <query>`. Ver SOUL.md para detalles.
 
 ---
 
@@ -160,22 +128,8 @@ Por favor, hacé tu consulta sobre comercio exterior.
 
 ## 🔄 FLUJO DE TRABAJO
 
-```
-Usuario envía mensaje
-    ↓
-¿Es saludo/bienvenida/qué hacés?
-    └─ SÍ → Mostrar mensaje de bienvenida
-    
-¿Es sobre comercio exterior?
-    ├─ NO → Mensaje de rechazo
-    │
-    └─ SÍ → Determinar tipo de consulta
-              │
-              ├─ Clasificación → Skill clasificador-aduanero + MCP
-              ├─ Normativa → Conocimiento LLM + search_leyes()
-              ├─ Jurisprudencia → search_jurisprudencia()
-              └─ Acuerdos → search_acuerdos()
-```
+Para clasificaciones arancelarias → seguir la MARCHA CLASIFICATORIA de SOUL.md (9 pasos).
+Para otros temas de comex → buscar en la base de datos y responder con fundamento.
 
 ---
 

@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+"""CLI wrapper for Tarifar MCP API"""
+import sys, json, urllib.request, os
+
+TOKEN = open(os.path.expanduser("~/.config/secrets/tarifar_mcp_token")).read().strip()
+URL = "https://tarifar.fastmcp.app/mcp"
+
+def call_mcp(tool_name, arguments):
+    payload = json.dumps({
+        "jsonrpc": "2.0", "id": "1",
+        "method": "tools/call",
+        "params": {"name": tool_name, "arguments": arguments}
+    }).encode()
+    req = urllib.request.Request(URL, data=payload, headers={
+        "Authorization": f"Bearer {TOKEN}",
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream"
+    })
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        for line in resp.read().decode().split("\n"):
+            if line.startswith("data: "):
+                data = json.loads(line[6:])
+                for c in data.get("result", {}).get("content", []):
+                    if c.get("type") == "text":
+                        print(c["text"])
+                return
+
+if len(sys.argv) < 3:
+    print("Usage: tarifar-mcp <tool> <query> [--page N] [--per_page N]")
+    sys.exit(1)
+
+tool, query = sys.argv[1], sys.argv[2]
+args = {"posicion_id": int(query)} if tool == "get_posicion_observaciones" else {"query": query}
+i = 3
+while i < len(sys.argv) - 1:
+    if sys.argv[i] in ("--page", "--per_page"):
+        args[sys.argv[i][2:]] = int(sys.argv[i+1]); i += 2
+    else: i += 1
+call_mcp(tool, args)
