@@ -145,7 +145,7 @@ class DictamenPDF(FPDF):
         self.rect(0, header_h, self.w, 1.5, style="F")
 
         # Logo - centered, large
-        logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "logo-tarifar.png")
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "logo-tarifar-header.png")
         if os.path.exists(logo_path):
             logo_h = 18
             # Center the logo horizontally (aspect ratio ~247:60 = ~4.1:1)
