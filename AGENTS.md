@@ -173,12 +173,15 @@ Para otros temas de comex → buscar en la base de datos y responder con fundame
 Cuando el usuario pida PDF, /tarifar-informe, informe, o dictamen:
 
 1. Leer TOOLS.md para ver el comando exacto y la estructura JSON
-2. Ejecutar `python3 bin/generar-dictamen.py` (el UNICO metodo permitido)
-3. Guardar en `output/informe-clasificacion.pdf`
-4. Enviar al usuario
+2. Generar un ID unico para el archivo (usar timestamp + 4 digitos random, ej: `20260309-0126-a3f2`)
+3. Ejecutar `python3 bin/generar-dictamen.py` (el UNICO metodo permitido)
+4. Guardar en `output/informe-clasificacion-{ID_UNICO}.pdf` (NUNCA nombre fijo, siempre unico)
+5. Enviar al usuario
+6. Eliminar los archivos temporales de output/ despues de enviar
 
 **⛔ PROHIBIDO GENERAR HTML. PROHIBIDO USAR WEASYPRINT. PROHIBIDO USAR CHROMIUM.**
 **⛔ El UNICO comando valido es: `python3 bin/generar-dictamen.py input.json output.pdf`**
+**⛔ NUNCA reusar nombres de archivo — cada PDF debe tener nombre unico para evitar conflictos entre usuarios.**
 
 Si no sabes como armar el JSON, lee TOOLS.md — tiene el ejemplo completo.
 

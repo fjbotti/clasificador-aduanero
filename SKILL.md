@@ -561,10 +561,11 @@ python3 bin/generar-dictamen.py datos.json /tmp/dictamen.pdf
 **Pasos para generar el PDF:**
 1. Recopilar todos los datos de la clasificacion realizada en la sesion actual
 2. Armar el JSON con la estructura requerida (ver arriba)
-3. Escribir el JSON a un archivo en el workspace: `output/informe-input.json`
-4. Ejecutar: `python3 bin/generar-dictamen.py output/informe-input.json output/informe-clasificacion.pdf`
-5. Enviar el PDF usando la ruta del workspace (NO /tmp): `output/informe-clasificacion.pdf`
-6. Eliminar los archivos temporales de output/
+3. Generar un ID unico: `UNIQUE_ID=$(date +%Y%m%d-%H%M%S)-$(head -c 2 /dev/urandom | xxd -p)`
+4. Escribir el JSON: `output/informe-input-${UNIQUE_ID}.json`
+5. Ejecutar: `python3 bin/generar-dictamen.py output/informe-input-${UNIQUE_ID}.json output/informe-clasificacion-${UNIQUE_ID}.pdf`
+6. Enviar el PDF al usuario
+7. Eliminar los archivos temporales: `rm -f output/informe-*-${UNIQUE_ID}.*`
 
 **RUTA DEL PDF**: Siempre guardar en el directorio `output/` dentro del workspace (crear con `mkdir -p output` si no existe). NUNCA guardar en `/tmp/` porque no se puede enviar desde ahi.
 

@@ -11,8 +11,11 @@ Este script genera PDFs profesionales con el logo de Tarifar, diseño minimalist
 ```bash
 mkdir -p output
 
+# 0. Generar ID unico para evitar conflictos entre usuarios concurrentes
+UNIQUE_ID=$(date +%Y%m%d-%H%M%S)-$(head -c 2 /dev/urandom | xxd -p)
+
 # 1. Crear el JSON con los datos de la clasificacion
-cat > output/informe-input.json << 'JSONEOF'
+cat > output/informe-input-${UNIQUE_ID}.json << 'JSONEOF'
 {
   "id_tramite": "TAR-2026-XX-XXXX",
   "fecha": "2026-03-08",
@@ -62,17 +65,26 @@ cat > output/informe-input.json << 'JSONEOF'
 }
 JSONEOF
 
-# 2. Generar el PDF
-python3 bin/generar-dictamen.py output/informe-input.json output/informe-clasificacion.pdf
+# 2. Generar el PDF (nombre unico!)
+python3 bin/generar-dictamen.py output/informe-input-${UNIQUE_ID}.json output/informe-clasificacion-${UNIQUE_ID}.pdf
 
-# 3. Enviar al usuario (usar ruta output/informe-clasificacion.pdf)
+# 3. Enviar al usuario (usar ruta output/informe-clasificacion-${UNIQUE_ID}.pdf)
+
+# 4. Limpiar archivos temporales despues de enviar
+rm -f output/informe-input-${UNIQUE_ID}.json output/informe-clasificacion-${UNIQUE_ID}.pdf
 ```
 
 ### REGLAS ABSOLUTAS:
 - SOLO usar `python3 bin/generar-dictamen.py` para PDFs
 - Guardar SIEMPRE en `output/` (nunca en /tmp/)
+- SIEMPRE usar nombre de archivo UNICO (con timestamp + random) — NUNCA nombre fijo
+- LIMPIAR archivos temporales despues de enviar el PDF al usuario
 - NO usar HTML + weasyprint
 - NO usar HTML + chromium/puppeteer
 - NO usar fpdf/reportlab directamente
 - NO generar HTML de ninguna forma
 - Caracteres ASCII solamente en el JSON (sin acentos, sin ñ, sin emojis)
+
+### AISLAMIENTO DE USUARIOS:
+Cada usuario tiene su propia sesion. Los archivos PDF son temporales y se eliminan despues de enviarse.
+NUNCA reusar un PDF generado para otro usuario. Cada /tarifar-informe genera un PDF nuevo desde cero con los datos de la clasificacion actual.
