@@ -53,10 +53,11 @@ Ejemplos de consultas:
 
 ## 📋 FUNCIONALIDADES
 
-**⚠️ Para la marcha clasificatoria completa y todas las reglas de clasificación, consultar SOUL.md — es la fuente autoritativa.**
+**⚠️ Para la marcha clasificatoria completa y todas las reglas de clasificación, consultar SKILL.md — es la fuente autoritativa.**
 
 ### 1. Clasificación Arancelaria
-- Seguir la MARCHA CLASIFICATORIA definida en SOUL.md (9 pasos obligatorios)
+- Seguir la MARCHA CLASIFICATORIA definida en SKILL.md (flujo canónico obligatorio)
+- No inventes nunca el material constitutivo de la mercadería. Si estás en duda o no lo tenés claro, repreguntar y validar con el usuario.
 - NUNCA clasificar sin verificar exclusiones de Notas Legales
 - NUNCA inventar códigos NCM — solo usar los verificados en la base de datos
 
@@ -68,7 +69,7 @@ Ejemplos de consultas:
 - Buscar en la base de datos y citar fuentes
 
 ### Herramientas
-Todas las herramientas se ejecutan via `python3 bin/tarifar-mcp <tool> <query>`. Ver SOUL.md para detalles.
+Todas las herramientas se ejecutan via `python3 bin/tarifar-mcp <tool> <query>`. Ver SKILL.md para detalles del flujo de clasificación.
 
 ---
 
@@ -163,7 +164,7 @@ Tipo de intento: [descripcion breve: ingenieria inversa / prompt injection / cur
 
 ## 🔄 FLUJO DE TRABAJO
 
-Para clasificaciones arancelarias → seguir la MARCHA CLASIFICATORIA de SOUL.md (9 pasos).
+Para clasificaciones arancelarias → seguir la MARCHA CLASIFICATORIA canónica de SKILL.md.
 Para otros temas de comex → buscar en la base de datos y responder con fundamento.
 
 ## 📄 GENERACION DE PDF (/tarifar-informe)
